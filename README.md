@@ -1,36 +1,115 @@
 # PR-CYBR-BACKEND-AGENT
 
+## Overview
+
 The **PR-CYBR-BACKEND-AGENT** is a core component of the PR-CYBR ecosystem, responsible for managing backend functionalities that power the platform’s critical operations, including secure API management, data processing, and integration with other agents. This agent is built for robust and scalable performance to support the PR-CYBR mission of protecting Puerto Rico’s digital infrastructure.
 
-## Features
+## Key Features
 
-- **Secure API Management:** Handles endpoints for frontend applications and other agents.
-- **Data Handling:** Processes incoming data streams, validates information, and manages secure storage.
-- **Integration with PR-CYBR Ecosystem:** Communicates with other agents to maintain smooth operations.
-- **Scalable Design:** Built to handle increasing loads as PR-CYBR grows.
+- **Secure API Management**: Handles endpoints for frontend applications and other agents.
+- **Data Handling**: Processes incoming data streams, validates information, and manages secure storage.
+- **Integration with PR-CYBR Ecosystem**: Communicates with other agents to maintain smooth operations.
+- **Scalable Design**: Built to handle increasing loads as PR-CYBR grows.
 
 ## Getting Started
 
-The backend agent operates autonomously via GitHub Actions. To use or extend its functionality:
+### Prerequisites
 
-1. **Fork the Repository:**
-   - Click the "Fork" button in GitHub to create your own copy.
-2. **Set Repository Secrets:**
-   - Configure your secrets (e.g., API keys) under the repository’s settings.
-3. **Trigger Workflows:**
-   - GitHub Actions will handle the backend processes automatically when triggered by events such as new data uploads or API requests.
+- **Git**: For cloning the repository.
+- **Python 3.8+**: Necessary for running the backend services.
+- **Docker**: Required for containerization and deployment.
+- **Access to GitHub Actions**: For automated workflows.
 
-## Contributing
+### Local Setup
 
-If you wish to contribute to this agent:
-1. Fork the repository.
-2. Make your changes.
-3. Submit a pull request for review.
+To set up the `PR-CYBR-BACKEND-AGENT` locally on your machine:
+
+1. **Clone the Repository**
+
+```bash
+git clone https://github.com/PR-CYBR/PR-CYBR-BACKEND-AGENT.git
+cd PR-CYBR-BACKEND-AGENT
+```
+
+2. **Run Local Setup Script**
+
+```bash
+./scripts/local_setup.sh
+```
+_This script will install necessary dependencies and set up the local environment._
+
+### Cloud Deployment
+
+To deploy the agent to a cloud environment:
+
+1. **Configure Repository Secrets**
+
+- Navigate to `Settings` > `Secrets and variables` > `Actions` in your GitHub repository.
+- Add the required secrets:
+   - `CLOUD_API_KEY`
+   - `DOCKERHUB_USERNAME`
+   - `DOCKERHUB_PASSWORD`
+   - Any other cloud-specific credentials.
+
+2. **Deploy Using GitHub Actions**
+
+- The deployment workflow is defined in `.github/workflows/docker-compose.yml`.
+- Push changes to the `main` branch to trigger the deployment workflow automatically.
+
+3. **Manual Deployment**
+
+- Use the deployment script for manual deployment:
+
+```bash
+./scripts/deploy_agent.sh
+```
+
+- Ensure you have Docker and cloud CLI tools installed and configured on your machine.
+
+## Integration
+
+The `PR-CYBR-BACKEND-AGENT` integrates with other PR-CYBR agents to provide essential backend services. It communicates with:
+
+- **PR-CYBR-FRONTEND-AGENT**: Serves APIs and data required by the frontend interface.
+- **PR-CYBR-DATABASE-AGENT**: Handles data storage and retrieval operations.
+- **PR-CYBR-SECURITY-AGENT**: Ensures secure data handling and compliance with security policies.
+- **PR-CYBR-DATA-INTEGRATION-AGENT**: Processes and integrates data from various sources.
+
+## Usage
+
+- **Development**
+
+  - Start the development server:
+
+```bash
+python setup.py develop
+```
+
+  - The backend services will run locally, listening on the configured port (default is `http://localhost:8000`).
+  - Make changes to the source code in the `src/` directory; the server will need to be restarted to apply changes.
+
+- **Testing**
+
+  - Run unit and integration tests:
+
+```bash
+python -m unittest discover tests
+```
+
+- **Building for Production**
+
+  - Create a production build:
+
+```bash
+python setup.py install
+```
+
+  - The build artifacts will be installed as a Python package on your system.
+
+## License
+
+This project is licensed under the **MIT License**. See the [`LICENSE`](LICENSE) file for details.
 
 ---
 
-For more information, visit the main PR-CYBR documentation or contact the project team.
-
----
-
-**License:** This project is licensed under the MIT License.
+For more information, refer to the [Django Documentation](https://docs.djangoproject.com/en/stable/) or contact the PR-CYBR team.
