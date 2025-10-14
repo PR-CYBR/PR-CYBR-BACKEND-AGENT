@@ -1,0 +1,45 @@
+name: codex-setup-maintenance
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'dashboard/**'
+      - 'docs/**'
+      - '.github/workflows/setup-maintenance.yml'
+
+jobs:
+  dependency-health:
+    name: Validate Codex maintenance tasks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Ensure Python is available
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run maintenance checklist
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          checklist = [
+              'Verify dashboard configuration schema',
+              'Confirm workflow documentation alignment',
+              'Update inter-agent sync matrix if dependencies changed',
+          ]
+          print('Codex maintenance checklist:')
+          for item in checklist:
+              print(f'- {item}')
+          Path('artifacts').mkdir(exist_ok=True)
+          (Path('artifacts') / 'maintenance.log').write_text('\n'.join(checklist))
+          PY
+      - name: Upload maintenance log
+        uses: actions/upload-artifact@v4
+        with:
+          name: codex-maintenance-log
+          path: artifacts/maintenance.log

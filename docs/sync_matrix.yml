@@ -1,0 +1,46 @@
+version: 1
+updated: 2024-05-09
+agents:
+  - name: pr_scanner
+    provides:
+      - pull_request_context
+      - policy_scan_results
+    depends_on:
+      - discussion_archivist
+      - wiki_monitor
+  - name: discussion_archivist
+    provides:
+      - commit_comment_digest
+    depends_on: []
+  - name: wiki_monitor
+    provides:
+      - knowledge_base_alerts
+    depends_on:
+      - discussion_archivist
+  - name: maintenance_custodian
+    provides:
+      - dependency_health_report
+      - workflow_schedule_updates
+    depends_on:
+      - pr_scanner
+      - wiki_monitor
+workflows:
+  codex-pr-scan:
+    owned_by: pr_scanner
+    notifies:
+      - maintenance_custodian
+  codex-commit-discussions:
+    owned_by: discussion_archivist
+    notifies:
+      - pr_scanner
+      - maintenance_custodian
+  codex-wiki-updates:
+    owned_by: wiki_monitor
+    notifies:
+      - pr_scanner
+      - maintenance_custodian
+  codex-setup-maintenance:
+    owned_by: maintenance_custodian
+    notifies:
+      - pr_scanner
+      - wiki_monitor

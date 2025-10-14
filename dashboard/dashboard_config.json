@@ -1,0 +1,32 @@
+{
+  "workflows": [
+    {
+      "name": "codex-pr-scan",
+      "description": "Scans pull requests for policy compliance and required artifacts.",
+      "owner": "pr_scanner",
+      "triggers": ["pull_request", "pull_request_review_comment"],
+      "dependencies": ["codex-commit-discussions", "codex-wiki-updates"]
+    },
+    {
+      "name": "codex-commit-discussions",
+      "description": "Captures and archives comments created on commits to share with review agents.",
+      "owner": "discussion_archivist",
+      "triggers": ["commit_comment"],
+      "dependencies": []
+    },
+    {
+      "name": "codex-wiki-updates",
+      "description": "Registers knowledge-base edits so the documentation agent can synchronize workflows.",
+      "owner": "wiki_monitor",
+      "triggers": ["gollum"],
+      "dependencies": ["codex-commit-discussions"]
+    },
+    {
+      "name": "codex-setup-maintenance",
+      "description": "Runs scheduled tasks that keep dependencies and documentation aligned across agents.",
+      "owner": "maintenance_custodian",
+      "triggers": ["schedule", "workflow_dispatch", "push"],
+      "dependencies": ["codex-pr-scan", "codex-wiki-updates"]
+    }
+  ]
+}
