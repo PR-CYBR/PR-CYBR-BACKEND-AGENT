@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Codex Workflow Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Codex Workflow Dashboard</h1>
+      <p>Monitor the automation lifecycle that powers Codex collaboration.</p>
+    </header>
+
+    <section id="workflow-list">
+      <h2>Registered Workflows</h2>
+      <ul>
+        {% for workflow in workflows %}
+        <li>
+          <h3>{{ workflow.name }}</h3>
+          <p>{{ workflow.description }}</p>
+          <p><strong>Owner:</strong> {{ workflow.owner }}</p>
+          <p><strong>Triggers:</strong> {{ ', '.join(workflow.triggers) }}</p>
+          <p><strong>Dependencies:</strong> {{ ', '.join(workflow.dependencies) or 'None' }}</p>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    <section id="workflow-detail">
+      <h2>Live Workflow Detail</h2>
+      <p>Select a workflow below to fetch the latest metadata from the REST API.</p>
+      <select id="workflow-select"></select>
+      <pre id="workflow-json">{}</pre>
+    </section>
+
+    <script src="/static/js/dashboard.js" type="module"></script>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+name: codex-wiki-updates
+
+on:
+  gollum:
+
+jobs:
+  document-sync:
+    name: Capture wiki changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: List wiki pages touched
+        run: |
+          echo "Wiki pages updated:" >> $GITHUB_STEP_SUMMARY
+          for page in "${{ join(github.event.pages.*.page_name, ' ') }}"; do
+            echo "- $page" >> $GITHUB_STEP_SUMMARY
+          done
+      - name: Trigger documentation pipeline
+        run: |
+          echo "Wiki update detected. Scheduling documentation sync for Codex dashboards and workflows."
