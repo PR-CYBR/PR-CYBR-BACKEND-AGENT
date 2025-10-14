@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  prcybr-backend-agent:
+    image: prcybr/pr-cybr-backend-agent:latest
+    container_name: prcybr-backend-agent
+    env_file: .env  # Load environment variables from .env file
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - pr-cybr-net
+    ports:
+      - "8080:80"  # Adjust this port as necessary for your Agent
+
+networks:
+  pr-cybr-net:
+    driver: bridge

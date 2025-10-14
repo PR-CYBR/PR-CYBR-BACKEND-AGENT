@@ -58,8 +58,11 @@ To deploy the agent to a cloud environment:
 
 2. **Deploy Using GitHub Actions**
 
-- The deployment workflow is defined in `.github/workflows/docker-compose.yml`.
-- Push changes to the `main` branch to trigger the deployment workflow automatically.
+- The Docker Compose configuration used for deployment lives at `docker-compose.yml` in the repository root.
+- The automated deployment workflow is defined in `.github/workflows/docker-compose.yml`.
+- Add a repository secret named `DEPLOY_ENV_FILE` that contains the key/value pairs required for the Compose deployment.
+  This secret should mirror the values that would normally live in your `.env` file so the workflow can write it to `.env` at runtime.
+- Push changes to the `main` branch or trigger the workflow manually from the **Actions** tab to run the deployment.
 
 3. **Manual Deployment**
 
