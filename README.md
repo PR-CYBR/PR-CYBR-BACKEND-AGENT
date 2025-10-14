@@ -43,6 +43,24 @@ cd PR-CYBR-BACKEND-AGENT
 ```
 _This script will install necessary dependencies and set up the local environment._
 
+### Docker Quickstart
+
+Build and run the backend service inside a container to verify the Docker image:
+
+1. **Build the Image**
+
+   ```bash
+   docker build -f build/Dockerfile -t pr-cybr-backend-agent .
+   ```
+
+2. **Start the Container**
+
+   ```bash
+   docker run --rm -p 8000:8000 pr-cybr-backend-agent
+   ```
+
+   The container prints `Agent is running` to confirm the backend service launched successfully. Override the default runtime settings by passing environment variables such as `AGENT_ENV` or `AGENT_PORT` via `-e` flags if needed.
+
 ### Cloud Deployment
 
 To deploy the agent to a cloud environment:
