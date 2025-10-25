@@ -1,0 +1,6 @@
+# Shared configuration for the Notion integration. Values are the environment
+# variable names that Terraform Cloud and GitHub Actions will populate.
+notion:
+  token_env: NOTION_TOKEN
+  database_id_env: NOTION_DATABASE_ID
+  parent_page_id_env: NOTION_PARENT_PAGE_ID
