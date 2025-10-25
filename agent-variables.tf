@@ -78,3 +78,20 @@ variable "AGENT_COLLAB" {
   sensitive   = true
   description = "Token for governance, discussions, issues, project boards"
 }
+
+# --- Notion Integration ---
+variable "NOTION_TOKEN" {
+  type        = string
+  sensitive   = true
+  description = "Internal integration token for Notion API access"
+}
+
+variable "NOTION_DATABASE_ID" {
+  type        = string
+  description = "Notion database identifier used for synchronization"
+}
+
+variable "NOTION_PARENT_PAGE_ID" {
+  type        = string
+  description = "Optional parent page that owns the synced content"
+}
