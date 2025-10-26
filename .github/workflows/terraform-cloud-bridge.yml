@@ -15,7 +15,7 @@ on:
     paths-ignore:
       - "**/*.md"
       - "docs/**"
-      - "README.md"
+      - "README.md"  
   workflow_dispatch:
 
 permissions:
@@ -34,9 +34,9 @@ env:
   TFC_TOKEN_EXCHANGE_URL: ${{ vars.TFC_TOKEN_EXCHANGE_URL }}
   TFC_RUN_ENDPOINT: ${{ vars.TFC_RUN_ENDPOINT }}
 
-jobs:
+jobs  :
   queue-terraform-cloud-run:
-if: github.event_name != 'pull_request' || github.event.pull_request.head_repo.fork == false
+  if: github.event_name != 'pull_request' || github.event.pull_request.head_repo.fork == false
     name: Queue Terraform Cloud run
     runs-on: ubuntu-latest
 
