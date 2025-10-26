@@ -36,15 +36,7 @@ logs/
 data/
 *.log
 
-# Docker files
-docker-compose.yml
-Dockerfile
-.dockerignore
-
-# Documentation
-README.md
-docs/
-
 # Environment files
 .env
 .env.example
+
