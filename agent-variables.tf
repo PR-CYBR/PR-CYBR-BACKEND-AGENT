@@ -5,6 +5,19 @@
 # Real values are securely managed in TFC.
 #############################################
 
+# --- Platform Tokens ---
+variable "GITHUB_TOKEN" {
+  type        = string
+  sensitive   = true
+  description = "GitHub token for authenticated operations"
+}
+
+variable "TFC_TOKEN" {
+  type        = string
+  sensitive   = true
+  description = "Terraform Cloud API token for workspace access"
+}
+
 # --- Docker / Registry ---
 variable "DOCKERHUB_TOKEN" {
   type        = string
@@ -15,6 +28,17 @@ variable "DOCKERHUB_TOKEN" {
 variable "DOCKERHUB_USERNAME" {
   type        = string
   description = "Docker Hub username"
+}
+
+variable "PR_CYBR_DOCKER_PASS" {
+  type        = string
+  sensitive   = true
+  description = "Docker Hub password for legacy workflows"
+}
+
+variable "PR_CYBR_DOCKER_USER" {
+  type        = string
+  description = "Docker Hub username for legacy workflows"
 }
 
 # --- Global Infrastructure URIs ---
@@ -77,4 +101,46 @@ variable "AGENT_COLLAB" {
   type        = string
   sensitive   = true
   description = "Token for governance, discussions, issues, project boards"
+}
+
+# --- Notion Integration ---
+variable "NOTION_DISCUSSIONS_ARC_DB_ID" {
+  type        = string
+  description = "Database ID for archiving discussions"
+}
+
+variable "NOTION_ISSUES_BACKLOG_DB_ID" {
+  type        = string
+  description = "Database ID for open issues backlog"
+}
+
+variable "NOTION_KNOWLEDGE_FILE_DB_ID" {
+  type        = string
+  description = "Database ID for knowledge file archive"
+}
+
+variable "NOTION_PAGE_ID" {
+  type        = string
+  description = "Base Notion page hosting agent databases"
+}
+
+variable "NOTION_PR_BACKLOG_DB_ID" {
+  type        = string
+  description = "Database ID for pull request backlog"
+}
+
+variable "NOTION_PROJECT_BOARD_BACKLOG_DB_ID" {
+  type        = string
+  description = "Database ID for project board backlog"
+}
+
+variable "NOTION_TASK_BACKLOG_DB_ID" {
+  type        = string
+  description = "Database ID for agent task backlog"
+}
+
+variable "NOTION_TOKEN" {
+  type        = string
+  sensitive   = true
+  description = "API token for Notion automation"
 }
