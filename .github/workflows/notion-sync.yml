@@ -1,0 +1,97 @@
+name: notion-sync
+
+on:
+  issues:
+    types:
+      - opened
+      - edited
+      - reopened
+      - closed
+      - labeled
+      - unlabeled
+      - assigned
+      - unassigned
+  pull_request:
+    types:
+      - opened
+      - edited
+      - reopened
+      - closed
+      - synchronize
+      - ready_for_review
+      - review_requested
+      - review_request_removed
+      - converted_to_draft
+      - labeled
+      - unlabeled
+  discussion:
+    types:
+      - created
+      - edited
+      - answered
+      - unanswered
+      - labeled
+      - unlabeled
+  projects_v2_item:
+    types:
+      - created
+      - edited
+      - reopened
+      - closed
+      - deleted
+      - converted
+  workflow_run:
+    workflows:
+      - maintenance
+      - tfc-sync
+    types:
+      - completed
+
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+  discussions: read
+  projects: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    env:
+      NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+      NOTION_DATABASE_ISSUES: ${{ secrets.NOTION_DATABASE_ISSUES }}
+      NOTION_DATABASE_PULL_REQUESTS: ${{ secrets.NOTION_DATABASE_PULL_REQUESTS }}
+      NOTION_DATABASE_DISCUSSIONS: ${{ secrets.NOTION_DATABASE_DISCUSSIONS }}
+      NOTION_DATABASE_PROJECTS: ${{ secrets.NOTION_DATABASE_PROJECTS }}
+      NOTION_DATABASE_WORKFLOWS: ${{ secrets.NOTION_DATABASE_WORKFLOWS }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.AGENT_ACTIONS }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements-notion.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-notion.txt
+
+      - name: Capture event payload
+        id: payload
+        run: |
+          payload_path="$RUNNER_TEMP/event.json"
+          printf '%s' '${{ toJson(github.event) }}' > "$payload_path"
+          echo "payload-path=$payload_path" >> "$GITHUB_OUTPUT"
+
+      - name: Sync with Notion
+        env:
+          EVENT_PAYLOAD_PATH: ${{ steps.payload.outputs.payload-path }}
+        run: |
+          python scripts/notion_sync.py --event "$EVENT_PAYLOAD_PATH"
