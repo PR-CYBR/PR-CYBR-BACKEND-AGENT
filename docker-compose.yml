@@ -1,10 +1,10 @@
-version: '3.8'
-
 services:
   prcybr-backend-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: prcybr/pr-cybr-backend-agent:latest
     container_name: prcybr-backend-agent
-    env_file: .env  # Load environment variables from .env file
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
