@@ -36,6 +36,7 @@ env:
 
 jobs:
   queue-terraform-cloud-run:
+if: github.event_name != 'pull_request' || github.event.pull_request.head_repo.fork == false
     name: Queue Terraform Cloud run
     runs-on: ubuntu-latest
 
