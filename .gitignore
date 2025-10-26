@@ -25,6 +25,10 @@ var/
 *.log
 *.tmp
 
+# Docker volumes
+data/
+logs/
+
 # VSCode settings
 .vscode/
 
@@ -36,3 +40,4 @@ var/
 
 # Secret files
 config/secrets.yml
+.env

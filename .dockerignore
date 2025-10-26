@@ -1,0 +1,50 @@
+# Git files
+.git
+.gitignore
+
+# GitHub workflows
+.github
+
+# Python cache
+__pycache__
+*.py[cod]
+*.class
+
+# Virtual environments
+venv
+env
+.venv
+
+# Distribution files
+build/
+dist/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+
+# MacOS files
+.DS_Store
+
+# Logs and data (should not be in image)
+logs/
+data/
+*.log
+
+# Docker files
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Documentation
+README.md
+docs/
+
+# Environment files
+.env
+.env.example
