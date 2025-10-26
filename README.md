@@ -45,23 +45,25 @@ _This script will install necessary dependencies and set up the local environmen
 
 ### Cloud Deployment
 
-To deploy the agent to a cloud environment:
+To deploy the agent to a cloud environment while centralizing secrets in Terraform Cloud:
 
-1. **Configure Repository Secrets**
+1. **Configure Terraform Cloud**
 
-- Navigate to `Settings` > `Secrets and variables` > `Actions` in your GitHub repository.
-- Add the required secrets:
-   - `CLOUD_API_KEY`
-   - `DOCKERHUB_USERNAME`
-   - `DOCKERHUB_PASSWORD`
-   - Any other cloud-specific credentials.
+- Connect the target Terraform Cloud workspace to this repository using the native VCS integration.
+- Store all environment variables, Terraform variables, and credentials inside Terraform Cloud.
 
-2. **Deploy Using GitHub Actions**
+2. **Populate GitHub repository variables for the workflow bridge**
 
-- The deployment workflow is defined in `.github/workflows/docker-compose.yml`.
-- Push changes to the `main` branch to trigger the deployment workflow automatically.
+- Navigate to `Settings` > `Secrets and variables` > `Actions` > `Variables` in GitHub.
+- Add the variables referenced in [`docs/terraform-cloud-bridge.md`](docs/terraform-cloud-bridge.md) (for example `TFC_ORGANIZATION`, `TFC_WORKSPACE_NAME`, `TFC_WORKFLOW_ID`, and the token exchange details supplied by Terraform Cloud).
+- No GitHub secrets are required for the Terraform Cloud workflow bridge; all sensitive values remain inside Terraform Cloud.
 
-3. **Manual Deployment**
+3. **Deploy Using GitHub Actions**
+
+- The remote execution workflow is defined in `.github/workflows/terraform-cloud-bridge.yml`.
+- Push changes to the tracked branches or open a pull request to queue a Terraform Cloud run automatically.
+
+4. **Manual Deployment**
 
 - Use the deployment script for manual deployment:
 

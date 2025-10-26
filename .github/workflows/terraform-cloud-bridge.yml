@@ -1,0 +1,198 @@
+name: terraform-cloud-bridge
+
+on:
+  push:
+    branches:
+      - codex
+      - agents
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - "README.md"
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
+      - "README.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+env:
+  TFC_HOSTNAME: ${{ vars.TFC_HOSTNAME || 'app.terraform.io' }}
+  TFC_ORGANIZATION: ${{ vars.TFC_ORGANIZATION }}
+  TFC_WORKSPACE_NAME: ${{ vars.TFC_WORKSPACE_NAME }}
+  TFC_PROJECT_ID: ${{ vars.TFC_PROJECT_ID }}
+  TFC_CONFIGURATION_DIRECTORY: ${{ vars.TFC_CONFIGURATION_DIRECTORY || '.' }}
+  TFC_WORKFLOW_ID: ${{ vars.TFC_WORKFLOW_ID }}
+  TFC_WORKFLOW_AUDIENCE: ${{ vars.TFC_WORKFLOW_AUDIENCE }}
+  TFC_TOKEN_EXCHANGE_URL: ${{ vars.TFC_TOKEN_EXCHANGE_URL }}
+  TFC_RUN_ENDPOINT: ${{ vars.TFC_RUN_ENDPOINT }}
+
+jobs:
+  queue-terraform-cloud-run:
+    name: Queue Terraform Cloud run
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository context
+        uses: actions/checkout@v4
+
+      - name: Validate Terraform Cloud bridge configuration
+        id: validate
+        shell: bash
+        run: |
+          missing=()
+          for key in TFC_ORGANIZATION TFC_WORKSPACE_NAME TFC_WORKFLOW_ID TFC_WORKFLOW_AUDIENCE TFC_TOKEN_EXCHANGE_URL TFC_RUN_ENDPOINT; do
+            if [ -z "${!key}" ]; then
+              missing+=("$key")
+            fi
+          done
+
+          if [ ${#missing[@]} -gt 0 ]; then
+            {
+              echo "Terraform Cloud workflow bridge is not fully configured."
+              echo "The following repository variables must be defined before the workflow can trigger remote runs:" "${missing[@]}".
+              echo "See docs/terraform-cloud-bridge.md for setup details."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+      - name: Request GitHub OIDC token for Terraform Cloud
+        id: oidc
+        if: ${{ steps.validate.outcome == 'success' }}
+        shell: bash
+        env:
+          AUDIENCE: ${{ env.TFC_WORKFLOW_AUDIENCE }}
+        run: |
+          response=$(curl -sLS "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=$AUDIENCE" \
+            -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN")
+
+          if ! token=$(python - <<'PY'
+import json,sys
+payload=json.load(sys.stdin)
+print(payload.get('value',''))
+PY
+<<<"$response"); then
+            echo "Failed to parse GitHub OIDC token response" >&2
+            exit 1
+          fi
+
+          if [ -z "$token" ]; then
+            echo "GitHub OIDC token response did not contain a value" >&2
+            exit 1
+          fi
+
+          masked="${token:0:4}...${token: -4}"
+          echo "Received GitHub OIDC token (masked): $masked"
+          echo "id_token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Exchange OIDC token for Terraform Cloud workflow token
+        id: tfc-token
+        if: ${{ steps.oidc.outcome == 'success' }}
+        shell: bash
+        env:
+          EXCHANGE_URL: ${{ env.TFC_TOKEN_EXCHANGE_URL }}
+          WORKFLOW_ID: ${{ env.TFC_WORKFLOW_ID }}
+          OIDC_TOKEN: ${{ steps.oidc.outputs.id_token }}
+          PROJECT_ID: ${{ env.TFC_PROJECT_ID }}
+        run: |
+          payload=$(python - <<'PY'
+import json,os,sys
+data={
+    "data": {
+        "type": "workflow-bridges",
+        "attributes": {
+            "workflow-id": os.environ["WORKFLOW_ID"],
+        }
+    }
+}
+project=os.environ.get("PROJECT_ID")
+if project:
+    data["data"]["attributes"]["project-id"] = project
+json.dump(data, sys.stdout)
+PY
+)
+
+          response=$(curl -sLS -X POST "$EXCHANGE_URL" \
+            -H "Content-Type: application/vnd.api+json" \
+            -H "Authorization: Bearer $OIDC_TOKEN" \
+            -d "$payload")
+
+          if ! token=$(python - <<'PY'
+import json,sys
+payload=json.load(sys.stdin)
+print(payload.get('data',{}).get('attributes',{}).get('token',''))
+PY
+<<<"$response"); then
+            echo "Failed to parse Terraform Cloud workflow token" >&2
+            exit 1
+          fi
+
+          if [ -z "$token" ]; then
+            echo "Terraform Cloud did not return a workflow token." >&2
+            echo "Full response: $response" >&2
+            exit 1
+          fi
+
+          echo "workflow_token=$token" >> "$GITHUB_OUTPUT"
+
+      - name: Queue remote run in Terraform Cloud
+        if: ${{ steps.tfc-token.outcome == 'success' }}
+        shell: bash
+        env:
+          RUN_ENDPOINT: ${{ env.TFC_RUN_ENDPOINT }}
+          WORKSPACE_NAME: ${{ env.TFC_WORKSPACE_NAME }}
+          CONFIG_DIR: ${{ env.TFC_CONFIGURATION_DIRECTORY }}
+          OIDC_TOKEN: ${{ steps.oidc.outputs.id_token }}
+          WORKFLOW_TOKEN: ${{ steps.tfc-token.outputs.workflow_token }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          run_payload=$(python - <<'PY'
+import json,os,sys
+workflow=os.environ.get('GITHUB_WORKFLOW','terraform-cloud-bridge')
+commit=os.environ.get('COMMIT_SHA','unknown')
+payload = {
+    "data": {
+        "type": "runs",
+        "attributes": {
+            "message": f"Run from GitHub Actions workflow {workflow} @ {commit}",
+            "source": "tfc-workflow-bridge",
+            "configuration-source": "git",
+            "is-destroy": False,
+            "workspace-name": os.environ["WORKSPACE_NAME"],
+            "branch": os.environ.get("BRANCH"),
+            "configuration-directory": os.environ.get("CONFIG_DIR", ".")
+        }
+    }
+}
+json.dump(payload, sys.stdout)
+PY
+)
+
+          response=$(curl -sLS -X POST "$RUN_ENDPOINT" \
+            -H "Content-Type: application/vnd.api+json" \
+            -H "Authorization: Bearer $WORKFLOW_TOKEN" \
+            -d "$run_payload")
+
+          run_id=$(python - <<'PY'
+import json,sys
+payload=json.load(sys.stdin)
+print(payload.get('data',{}).get('id',''))
+PY
+<<<"$response")
+
+          if [ -z "$run_id" ]; then
+            echo "Terraform Cloud did not return a run id" >&2
+            echo "Full response: $response" >&2
+            exit 1
+          fi
+
+          echo "Queued Terraform Cloud run $run_id" >> "$GITHUB_STEP_SUMMARY"
+
